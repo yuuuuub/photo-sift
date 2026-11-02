@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">挑片</string>
+    <string name="title_activity_main">挑片</string>
+    <string name="package_name">com.tiaopian.app</string>
+    <string name="custom_url_scheme">com.tiaopian.app</string>
+</resources>

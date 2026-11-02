@@ -1,0 +1,30 @@
+{
+  "name": "photo-triage-native",
+  "version": "1.0.0",
+  "private": true,
+  "description": "挑片 Android app — local photo triage with system-confirmed deletion",
+  "scripts": {
+    "build:native": "esbuild native-entry.js --bundle --format=iife --target=es2020 --outfile=www/native-bundle.js",
+    "sync": "npm run build:native && cap sync android",
+    "open:android": "cap open android",
+    "build:apk": "npm run sync && cd android && gradlew.bat assembleDebug"
+  },
+  "keywords": [
+    "capacitor",
+    "android",
+    "photos"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/core": "^8.6.0",
+    "@capgo/capacitor-photo-library": "^8.0.32"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "esbuild": "^0.25.12"
+  }
+}

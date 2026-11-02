@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c0d0b">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="挑片：在本地整理手机相册。上下翻页，左滑标记删除，右滑保留。照片不会上传。">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="挑片">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0c0a'/%3E%3Ccircle cx='48' cy='16' r='4' fill='%23ff6041'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-size='34' fill='%23f1e9d8' font-family='serif'%3E%E6%8C%91%3C/text%3E%3C/svg%3E">
+  <title>挑片 · 把相册过一遍</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient" id="ambient" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="frame" aria-hidden="true">
+    <i class="frame__corner frame__corner--tl"></i>
+    <i class="frame__corner frame__corner--tr"></i>
+    <i class="frame__corner frame__corner--bl"></i>
+    <i class="frame__corner frame__corner--br"></i>
+  </div>
+
+  <div class="app" id="app" data-view="intro">
+    <header class="topbar">
+      <div class="brand" aria-label="挑片 Photo Sift">
+        <span class="brand__mark">挑片</span>
+        <span class="brand__sub">PHOTO<br>SIFT</span>
+        <span class="brand__dot" aria-hidden="true"></span>
+      </div>
+
+      <div class="topbar__side">
+        <div class="counts" id="counts" aria-label="整理统计" hidden>
+          <span class="count count--keep"><i></i><b id="keepCount">0</b><span>留</span></span>
+          <span class="count count--delete"><i></i><b id="deleteCount">0</b><span>删</span></span>
+        </div>
+        <span class="local-badge" id="localBadge"><i></i>LOCAL</span>
+        <button class="icon-btn" id="helpBtn" type="button" aria-label="查看使用说明和快捷键" aria-haspopup="dialog">
+          <span>?</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="stage">
+      <section class="intro" id="intro" aria-labelledby="introTitle">
+        <div class="intro__wash" aria-hidden="true"></div>
+        <div class="intro__art" aria-hidden="true">
+          <figure class="print print--a">
+            <img src="demo/04.jpg" alt="" draggable="false">
+            <figcaption>04 / DUSK</figcaption>
+          </figure>
+          <figure class="print print--b">
+            <img src="demo/02.jpg" alt="" draggable="false">
+            <figcaption>02 / PINE</figcaption>
+          </figure>
+          <figure class="print print--c">
+            <img src="demo/06.jpg" alt="" draggable="false">
+            <figcaption>06 / SALT</figcaption>
+          </figure>
+          <span class="art-label">CONTACT&nbsp;SHEET&nbsp;/&nbsp;001</span>
+        </div>
+
+        <div class="intro__copy">
+          <p class="eyebrow"><i></i>PERSONAL ARCHIVE · 本地整理</p>
+          <h1 id="introTitle">把相册，<br><span>过一遍</span><em>。</em></h1>
+          <p class="lede">上下翻页，左滑删除，右滑保留。<br>照片不离开这台设备。</p>
+
+          <div class="intro__cta">
+            <button class="btn-primary" id="pickBtn" type="button">
+              <span>选择照片</span>
+              <span class="btn-primary__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+            </button>
+            <button class="btn-ghost" id="demoBtn" type="button">
+              先看示例 <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+
+          <div class="gesture-guide" aria-label="手势说明">
+            <div><b>↑ ↓</b><span>翻页</span></div>
+            <div><b class="is-red">←</b><span>删除</span></div>
+            <div><b class="is-lime">→</b><span>保留</span></div>
+          </div>
+
+          <p class="intro__note">支持一次选择多张 · 原图只在浏览器内读取</p>
+        </div>
+
+        <p class="intro__side" aria-hidden="true">SCROLL / SIFT / RETURN</p>
+      </section>
+
+      <section class="review" id="review" aria-labelledby="reviewLabel" hidden>
+        <div class="review__bar">
+          <span class="review__label" id="reviewLabel">FRAME <b id="frameNow">01</b> — <span id="frameTotal">06</span></span>
+          <span class="review__hint">照片只在本地处理</span>
+        </div>
+
+        <div class="deck-area">
+          <span class="side-note side-note--left" aria-hidden="true">← DELETE</span>
+          <div class="deck" id="deck"></div>
+          <span class="side-note side-note--right" aria-hidden="true">KEEP →</span>
+        </div>
+
+        <div class="track" aria-hidden="true">
+          <span class="track__fill" id="trackFill"></span>
+          <span class="track__ticks" id="trackTicks"></span>
+        </div>
+
+        <div class="filmstrip-wrap" id="filmstripWrap" hidden>
+          <div class="pin-slot" id="pinSlot" hidden>
+            <button class="pin-slot__card" id="pinCardBtn" type="button" aria-label="对比挂起的照片">
+              <img id="pinThumb" alt="">
+              <span class="pin-slot__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M9 4h6M10 4l1 6-3 3h8l-3-3 1-6M12 13v7"/></svg>
+              </span>
+              <span class="pin-slot__label">对比</span>
+            </button>
+            <button class="pin-slot__clear" id="pinClearBtn" type="button" aria-label="取消挂起">×</button>
+          </div>
+          <div class="filmstrip-main">
+            <div class="filmstrip-meta">
+              <span id="burstInfo">单张 · 01 / 01</span>
+              <span id="filmstripCounter">余 0 / 0</span>
+            </div>
+            <div class="filmstrip" id="filmstrip" role="list" aria-label="照片预览条"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="finish" id="finish" aria-labelledby="finishTitle" hidden>
+        <div class="finish__copy">
+          <p class="eyebrow"><i></i>ROLL COMPLETE</p>
+          <h2 id="finishTitle">这一卷，<br><span>看完了</span><em>。</em></h2>
+          <p class="finish__sub" id="finishSub">照片都过了一遍。</p>
+        </div>
+
+        <div class="finish__stats" aria-label="整理结果">
+          <div class="finish__stat">
+            <b id="finalKeep">0</b>
+            <span><i class="is-lime"></i>张留下</span>
+          </div>
+          <div class="finish__stat">
+            <b id="finalDelete">0</b>
+            <span><i class="is-red"></i>张待删除</span>
+          </div>
+        </div>
+
+        <div class="finish__strip" id="finishStrip" aria-hidden="true"></div>
+
+        <p class="finish__note">
+          网页没有权限改动系统相册。“待删除”只是本次整理清单，请照着清单在系统相册里手动删除。
+        </p>
+
+        <div class="finish__actions">
+          <button class="btn-primary btn-primary--dark" id="viewKeepBtn" type="button">查看保留的</button>
+          <button class="btn-outline" id="viewDeleteBtn" type="button">查看删除清单</button>
+        </div>
+        <div class="finish__minor">
+          <button class="btn-text" id="finishUndoBtn" type="button">撤销上一张</button>
+          <button class="btn-text" id="addMoreBtn" type="button">再选一些</button>
+          <button class="btn-text btn-text--dim" id="restartBtn" type="button">重新整理</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="controls" id="controls" hidden>
+        <div class="controls__actions">
+          <button class="round-action round-action--delete" id="deleteBtn" type="button" aria-label="标记删除（← 键）">
+            <span class="round-action__circle">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </span>
+            <span class="round-action__label">删除</span>
+          </button>
+
+          <button class="pin-btn" id="pinBtn" type="button" aria-label="挂起当前照片用于对比" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6M10 4l1 6-3 3h8l-3-3 1-6M12 13v7"/></svg>
+            <span>挂起</span>
+          </button>
+
+          <button class="undo-btn" id="undoBtn" type="button" aria-label="撤销上一次决定" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H5v4"/><path d="M5 11c2.4-4 5.6-5.7 9.2-4.6C18 7.6 20 11.2 18.9 15c-1 3.6-4.6 5.7-8.3 4.7-2-.5-3.6-1.8-4.5-3.5"/></svg>
+            <span>撤销</span>
+          </button>
+
+          <button class="round-action round-action--keep" id="keepBtn" type="button" aria-label="保留照片（→ 键）">
+            <span class="round-action__circle">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>
+            </span>
+            <span class="round-action__label">保留</span>
+          </button>
+        </div>
+        <p class="controls__hint">
+          <span class="hint-touch">上滑 / 下滑翻页 · 左滑删 · 右滑留</span>
+          <span class="hint-keys"><kbd>↑</kbd><kbd>↓</kbd> 翻页 <i></i><kbd>←</kbd> 删除 <i></i><kbd>→</kbd> 保留</span>
+        </p>
+      </div>
+
+      <div class="intro-footer" id="introFooter">
+        <span><i class="privacy-dot"></i>本地处理 · 无上传</span>
+        <span class="intro-footer__right">SWIPE TO SIFT</span>
+      </div>
+    </footer>
+
+    <input type="file" id="fileInput" accept="image/*" multiple hidden>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
+    <span class="toast__text" id="toastText"></span>
+    <button class="toast__action" id="toastUndo" type="button">撤销</button>
+    <span class="toast__timer" id="toastTimer"></span>
+  </div>
+
+  <div class="sr-only" id="live" aria-live="polite" aria-atomic="true"></div>
+
+  <dialog class="sheet" id="helpDialog" aria-labelledby="helpTitle">
+    <div class="sheet__head">
+      <div>
+        <p class="eyebrow"><i></i>HOW IT WORKS</p>
+        <h2 id="helpTitle">挑片说明</h2>
+      </div>
+      <button class="icon-btn sheet__close" type="button" data-close-dialog aria-label="关闭说明">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="sheet__body">
+      <ol class="howto">
+        <li><span class="howto__keys">↑ ↓</span><div><b>上下滑，翻页</b><p>不急着决定，先把这一卷看完。</p></div></li>
+        <li><span class="howto__keys howto__keys--red">←</span><div><b>左滑，删除</b><p>把照片放进本次的删除清单。</p></div></li>
+        <li><span class="howto__keys howto__keys--lime">→</span><div><b>右滑，保留</b><p>留下这一张，继续下一张。</p></div></li>
+      </ol>
+
+      <div class="feature-notes">
+        <div><b>挂起对比</b><p>点底部的「挂起」，把当前照片放到预览条左侧。继续翻几张，点那张小卡就能并排对比，再决定留不留。</p></div>
+        <div><b>连拍预览条</b><p>底部缩略图显示前后照片；同一组连拍会用分隔线和「×张数」标出来，并显示本组还剩多少张。</p></div>
+      </div>
+
+      <div class="callout">
+        <b>关于“删除”</b>
+        <p>浏览器没有权限直接删除手机系统相册里的照片。左滑只会做标记，最后请在系统相册里照着删除清单手动清理。</p>
+      </div>
+
+      <div class="callout callout--quiet">
+        <b>隐私</b>
+        <p>照片只在浏览器本地读取，不会上传服务器。刷新页面后，本次整理记录会清空。</p>
+      </div>
+
+      <div class="shortcuts">
+        <span><kbd>←</kbd><kbd>→</kbd> 删除 / 保留</span>
+        <span><kbd>↑</kbd><kbd>↓</kbd> 翻页</span>
+        <span><kbd>Z</kbd> 撤销</span>
+        <span><kbd>Esc</kbd> 关闭</span>
+      </div>
+    </div>
+
+    <button class="sheet__cta" type="button" data-close-dialog>知道了</button>
+  </dialog>
+
+  <dialog class="sheet sheet--results" id="resultsDialog" aria-labelledby="resultsTitle">
+    <div class="sheet__head">
+      <div>
+        <p class="eyebrow"><i></i>YOUR SELECTS</p>
+        <h2 id="resultsTitle">整理结果</h2>
+      </div>
+      <button class="icon-btn sheet__close" type="button" data-close-dialog aria-label="关闭结果">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="result-tabs" role="tablist" aria-label="查看整理结果">
+      <button class="result-tab is-active" id="tabKeep" role="tab" aria-selected="true" aria-controls="resultGrid" data-tab="keep" type="button">
+        保留 <b id="tabKeepCount">0</b>
+      </button>
+      <button class="result-tab" id="tabDelete" role="tab" aria-selected="false" aria-controls="resultGrid" data-tab="delete" type="button">
+        待删除 <b id="tabDeleteCount">0</b>
+      </button>
+    </div>
+
+    <div class="sheet__body sheet__body--results">
+      <div class="result-grid" id="resultGrid" role="tabpanel" aria-labelledby="tabKeep"></div>
+    </div>
+
+    <div class="result__footer">
+      <p id="resultNote">这些照片仍保存在本页里，刷新后清空。</p>
+      <button class="btn-outline btn-outline--small" id="exportDeleteBtn" type="button">导出删除清单</button>
+    </div>
+  </dialog>
+
+  <dialog class="sheet compare-sheet" id="compareDialog" aria-labelledby="compareTitle">
+    <div class="sheet__head">
+      <div>
+        <p class="eyebrow"><i></i>ON HOLD / COMPARE</p>
+        <h2 id="compareTitle">对比一下</h2>
+      </div>
+      <button class="icon-btn sheet__close" type="button" data-close-dialog aria-label="关闭对比">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="compare-body" id="compareBody">
+      <figure class="compare-panel compare-panel--pinned">
+        <img id="comparePinnedImg" alt="">
+        <figcaption><span>挂起</span><b id="comparePinnedName"></b></figcaption>
+      </figure>
+      <figure class="compare-panel compare-panel--current">
+        <img id="compareCurrentImg" alt="">
+        <figcaption><span>当前</span><b id="compareCurrentName"></b></figcaption>
+      </figure>
+    </div>
+
+    <p class="compare-hint">只对挂起的那张做决定，当前照片会留在队列里。</p>
+
+    <div class="compare-actions">
+      <button class="compare-keep" id="compareKeepBtn" type="button">保留挂起</button>
+      <button class="compare-delete" id="compareDeleteBtn" type="button">删除挂起</button>
+      <button class="btn-text compare-back" type="button" data-close-dialog>回到卡片</button>
+    </div>
+  </dialog>
+
+  <script src="app.js" defer></script>
+  <script src="features.js" defer></script>
+</body>
+</html>

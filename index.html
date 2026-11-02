@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0c0a">
+  <title>挑片 / Photo Sift</title>
+  <style>
+    :root {
+      --bg: #0b0c0a;
+      --paper: #f1e9d8;
+      --muted: #8d877a;
+      --line: rgba(241, 233, 216, 0.16);
+      --red: #ff6041;
+      --lime: #dceb8b;
+      --serif: "Songti SC", "STSong", "SimSun", Georgia, serif;
+      --sans: "Avenir Next", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: "Cascadia Mono", "SFMono-Regular", "Courier New", monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      display: grid;
+      place-items: center;
+      padding: 32px 22px;
+      color: var(--paper);
+      background:
+        radial-gradient(ellipse 70% 50% at 70% 20%, rgba(255, 96, 65, 0.13), transparent 65%),
+        var(--bg);
+      font-family: var(--sans);
+    }
+    main { width: min(880px, 100%); }
+    .eyebrow {
+      display: flex; align-items: center; gap: 10px; margin: 0 0 28px;
+      color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .2em;
+    }
+    .eyebrow i { width: 5px; height: 5px; border-radius: 50%; background: var(--red); }
+    h1 {
+      margin: 0; font-family: var(--serif); font-size: clamp(64px, 15vw, 156px);
+      font-weight: 400; line-height: .88; letter-spacing: -.08em;
+    }
+    h1 span { font-family: "Kaiti SC", "STKaiti", "KaiTi", var(--serif); letter-spacing: -.06em; }
+    h1 em { color: var(--red); font-family: Georgia, var(--serif); font-style: normal; }
+    .lede {
+      max-width: 490px; margin: 26px 0 0; color: #c4bcae;
+      font-size: 14px; line-height: 1.9; letter-spacing: .04em;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+    a {
+      display: inline-flex; min-height: 52px; align-items: center; justify-content: space-between;
+      gap: 24px; padding: 0 17px; border: 1px solid var(--line);
+      color: var(--paper); text-decoration: none; font-size: 11px; letter-spacing: .1em;
+    }
+    a.primary { color: #10110d; background: var(--paper); border-color: var(--paper); }
+    a.android { color: var(--lime); border-color: rgba(220, 235, 139, .38); }
+    a span { color: var(--red); }
+    a:hover { border-color: var(--paper); }
+    .meta {
+      display: flex; flex-wrap: wrap; gap: 12px 26px; margin-top: 42px; padding-top: 16px;
+      border-top: 1px solid var(--line); color: var(--muted);
+      font-family: var(--mono); font-size: 8px; letter-spacing: .08em;
+    }
+    .meta b { color: var(--paper); font-weight: 400; }
+    .note { margin-top: 18px; color: #6f6a5f; font-size: 9px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow"><i></i>PERSONAL ARCHIVE · 本地照片整理</p>
+    <h1>把相册，<br><span>过一遍</span><em>。</em></h1>
+    <p class="lede">
+      上下翻页，左滑删除，右滑保留。<br>
+      网页版是本机预览工具；Android 版可以调用系统相册，并在你确认后真正删除照片。
+    </p>
+    <div class="actions">
+      <a class="primary" href="photo-triage/">打开网页版 <span>↗</span></a>
+      <a class="android" href="photo-triage-native/photo-triage-debug.apk">下载 Android APK <span>↓</span></a>
+    </div>
+    <div class="meta">
+      <span><b>LOCAL ONLY</b> · 无上传</span>
+      <span><b>ANDROID 11+</b> · 系统确认删除</span>
+      <span><b>MIT</b> · Open source</span>
+    </div>
+    <p class="note">网页版无法直接删除系统相册照片；Android 原生版的删除会经过系统确认，无法静默执行。</p>
+  </main>
+</body>
+</html>
