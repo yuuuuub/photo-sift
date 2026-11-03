@@ -315,6 +315,23 @@
   ui.compareDeleteBtn.addEventListener("click", () => decidePinned("delete"));
   ui.compareDialog.addEventListener("click", closeCompareFromBackdrop);
 
+  function onShortcut(event) {
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (state.stage !== "review") return;
+    if (document.querySelector("dialog[open]")) return;
+    const target = event.target;
+    if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    const key = event.key.toLowerCase();
+    if (key === "p") {
+      event.preventDefault();
+      togglePin();
+    } else if (key === "c") {
+      event.preventDefault();
+      openCompare();
+    }
+  }
+
+  document.addEventListener("keydown", onShortcut);
   document.addEventListener("photosift:render", render);
   render();
 })();
