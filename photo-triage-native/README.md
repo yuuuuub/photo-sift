@@ -18,6 +18,7 @@
 - 上/下滑翻页，左滑加入待删除，右滑保留
 - 点「挂起」把当前照片放到预览条左侧，继续翻看后与当前照片并排对比，再决定挂起那张的去留
 - 底部连拍预览条显示前后照片、连拍分组、组内剩余张数，并可点击跳转
+- 双击照片全屏放大，捏合缩放、拖动查看细节（边角 / 焦点是否清晰）
 - 浏览过程中随时可点右上角「删除已选 N」立即批量删除，不必先看完
 - 完成一批后可继续加载更早的照片
 - 结果页提供「从系统相册删除 N 张」按钮
@@ -42,7 +43,7 @@ photo-triage-debug.apk
 - SHA-256：
 
 ```text
-630531E8DA6D1D05A629D5CC84232A91F65F47C710A83A4BC2DC561FD680E69C
+23E6B76F0730B62FC7DA5B2BC728313BC2F1930263026BE67C1E9A9BFC00133D
 ```
 
 安装方式：把 APK 发到手机，允许「安装未知来源应用」，点击安装；或连接 USB 调试后执行：
@@ -113,6 +114,7 @@ photo-triage-native/
 │   ├── styles.css
 │   ├── app.js              # 包含原生相册/删除流程
 │   ├── features.js         # 挂起对比、连拍预览条
+│   ├── zoom.js             # 双击放大
 │   └── native-bundle.js    # Capacitor 插件 JS 打包产物
 ├── native-entry.js         # 打包入口：@capacitor/core、App、PhotoLibrary、PhotoDeleter
 ├── capacitor.config.json

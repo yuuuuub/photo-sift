@@ -315,6 +315,44 @@
   ui.compareDeleteBtn.addEventListener("click", () => decidePinned("delete"));
   ui.compareDialog.addEventListener("click", closeCompareFromBackdrop);
 
-  document.addEventListener("photosift:render", render);
+  function onShortcut(event) {
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (state.stage !== "review") return;
+    if (document.querySelector("dialog[open]")) return;
+    const target = event.target;
+    if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    const key = event.key.toLowerCase();
+    if (key === "p") {
+      event.preventDefault();
+      togglePin();
+    } else if (key === "c") {
+      event.preventDefault();
+      openCompare();
+    } else if (key === "f" || key === "enter") {
+      event.preventDefault();
+      const current = getCurrent();
+      if (current) core.openZoom(current);
+    }
+  }
+
+  function bindZoomOnCard() {
+    const deck = core.el.deck;
+    if (!deck || deck.dataset.zoomBound === "1") return;
+    deck.dataset.zoomBound = "1";
+    deck.addEventListener("dblclick", (event) => {
+      if (state.busy || state.stage !== "review") return;
+      const isPhoto = event.target && event.target.classList && event.target.classList.contains("card__photo");
+      if (!isPhoto) return;
+      event.preventDefault();
+      const current = getCurrent();
+      if (current) core.openZoom(current);
+    });
+  }
+
+  document.addEventListener("keydown", onShortcut);
+  document.addEventListener("photosift:render", () => {
+    render();
+    bindZoomOnCard();
+  });
   render();
 })();

@@ -328,10 +328,31 @@
     } else if (key === "c") {
       event.preventDefault();
       openCompare();
+    } else if (key === "f" || key === "enter") {
+      event.preventDefault();
+      const current = getCurrent();
+      if (current) core.openZoom(current);
     }
   }
 
+  function bindZoomOnCard() {
+    const deck = core.el.deck;
+    if (!deck || deck.dataset.zoomBound === "1") return;
+    deck.dataset.zoomBound = "1";
+    deck.addEventListener("dblclick", (event) => {
+      if (state.busy || state.stage !== "review") return;
+      const isPhoto = event.target && event.target.classList && event.target.classList.contains("card__photo");
+      if (!isPhoto) return;
+      event.preventDefault();
+      const current = getCurrent();
+      if (current) core.openZoom(current);
+    });
+  }
+
   document.addEventListener("keydown", onShortcut);
-  document.addEventListener("photosift:render", render);
+  document.addEventListener("photosift:render", () => {
+    render();
+    bindZoomOnCard();
+  });
   render();
 })();

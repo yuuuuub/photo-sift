@@ -245,6 +245,7 @@
       <div class="feature-notes">
         <div><b>挂起对比</b><p>点底部的「挂起」，把当前照片放到预览条左侧。继续翻几张，点那张小卡就能并排对比，再决定留不留。</p></div>
         <div><b>连拍预览条</b><p>底部缩略图显示前后照片；同一组连拍会用分隔线和「×张数」标出来，并显示本组还剩多少张。</p></div>
+        <div><b>放大看细节</b><p>双击照片全屏放大，捏合缩放，拖动查看细节。</p></div>
       </div>
 
       <div class="callout">
@@ -329,8 +330,22 @@
     </div>
   </dialog>
 
+  <dialog class="zoom-viewer" id="zoomViewer" aria-labelledby="zoomCounter">
+    <div class="zoom-bar">
+      <p class="zoom-bar__label" id="zoomCounter"></p>
+      <button class="zoom-bar__btn" id="zoomOutBtn" type="button" aria-label="缩小回原始大小" disabled>1×</button>
+      <button class="icon-btn zoom-bar__close" type="button" data-close-dialog aria-label="关闭放大">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="zoom-stage" id="zoomStage" tabindex="0" aria-label="双击或捏合放大照片">
+      <img id="zoomImage" alt="">
+    </div>
+    <p class="zoom-hint">双击 / 捏合放大 · 拖动查看细节 · Esc 关闭</p>
+  </dialog>
   <script src="native-bundle.js" defer></script>
   <script src="app.js" defer></script>
   <script src="features.js" defer></script>
+  <script src="zoom.js" defer></script>
 </body>
 </html>

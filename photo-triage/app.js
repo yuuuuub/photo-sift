@@ -1177,6 +1177,10 @@
 
   /* -------------------------------------------------------------------- init */
 
+  function openZoom(item) {
+    if (!item || state.stage !== "review") return;
+    document.dispatchEvent(new CustomEvent("photosift:open-zoom", { detail: { id: item.id } }));
+  }
   window.PhotoSiftCore = {
     state,
     el,
@@ -1184,6 +1188,7 @@
     getPending,
     applyDecision,
     jumpToPending,
+    openZoom,
     renderAll,
     showToast,
     announce
