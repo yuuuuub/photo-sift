@@ -330,6 +330,32 @@
     </div>
   </dialog>
 
+  <dialog class="sheet confirm-sheet" id="deleteConfirmDialog" aria-labelledby="deleteConfirmTitle">
+    <div class="sheet__head">
+      <div>
+        <p class="eyebrow"><i></i>FINAL CHECK</p>
+        <h2 id="deleteConfirmTitle">删除前再确认一次</h2>
+      </div>
+      <button class="icon-btn sheet__close" type="button" data-close-dialog aria-label="关闭确认">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <p class="confirm-summary">
+      下面 <b id="confirmCount">0</b> 张会从系统相册永久删除，删除后无法恢复。
+      缩略图都看一遍，确认没有需要保留的那一张。
+    </p>
+
+    <div class="confirm-grid" id="confirmGrid" role="list" aria-label="即将删除的照片"></div>
+
+    <p class="confirm-hint">确认后会弹出 Android 系统对话框，系统里还需要再点一次「允许」。</p>
+
+    <div class="confirm-actions">
+      <button class="btn-text confirm-cancel" type="button" data-close-dialog>先不删</button>
+      <button class="confirm-delete" id="confirmDeleteBtn" type="button">确认删除</button>
+    </div>
+  </dialog>
+
   <dialog class="zoom-viewer" id="zoomViewer" aria-labelledby="zoomCounter">
     <div class="zoom-bar">
       <p class="zoom-bar__label" id="zoomCounter"></p>

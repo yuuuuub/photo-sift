@@ -3672,3 +3672,126 @@ body[data-native="true"] .intro::after {
   }
 }
 .zoom-viewer.is-zoomed .zoom-stage { cursor: grabbing; }
+
+/* ------------------------------------------------------ delete confirmation */
+.confirm-sheet {
+  width: min(94vw, 720px);
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+.confirm-summary {
+  margin: 14px 22px 12px;
+  color: var(--paper-soft);
+  font-size: 10px;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+}
+
+.confirm-summary b {
+  color: var(--red);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.confirm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+  gap: 5px;
+  padding: 0 22px;
+  max-height: 42vh;
+  overflow-y: auto;
+}
+
+.confirm-cell {
+  margin: 0;
+  min-width: 0;
+}
+
+.confirm-cell img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 1px solid rgba(255, 96, 65, 0.42);
+  background: #0e0f0c;
+}
+
+.confirm-cell figcaption {
+  overflow: hidden;
+  padding-top: 3px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 6px;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.confirm-hint {
+  margin: 12px 22px 0;
+  color: var(--muted);
+  font-size: 8.5px;
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 8px;
+  padding: 14px 22px 20px;
+}
+
+.confirm-cancel {
+  height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--paper-soft);
+  background: transparent;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.confirm-delete {
+  height: 46px;
+  border: 1px solid var(--red);
+  border-radius: 2px;
+  color: #190704;
+  background: var(--red);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.confirm-delete:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-height: 680px) {
+  .confirm-summary {
+    margin: 10px 16px 8px;
+    font-size: 9px;
+  }
+
+  .confirm-grid {
+    padding: 0 16px;
+    max-height: 34vh;
+  }
+
+  .confirm-hint {
+    display: none;
+  }
+
+  .confirm-actions {
+    padding: 10px 16px 14px;
+  }
+
+  .confirm-cancel,
+  .confirm-delete {
+    height: 40px;
+  }
+}

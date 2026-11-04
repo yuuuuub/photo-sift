@@ -95,6 +95,10 @@
     nativeDeleteCount: document.getElementById("nativeDeleteCount"),
     nativeQuickDelete: document.getElementById("nativeQuickDelete"),
     nativeQuickDeleteCount: document.getElementById("nativeQuickDeleteCount"),
+    deleteConfirmDialog: document.getElementById("deleteConfirmDialog"),
+    confirmGrid: document.getElementById("confirmGrid"),
+    confirmCount: document.getElementById("confirmCount"),
+    confirmDeleteBtn: document.getElementById("confirmDeleteBtn"),
     nativeSuccess: document.getElementById("nativeSuccess"),
     finishNote: document.getElementById("finishNote"),
     helpDeleteText: document.getElementById("helpDeleteText"),
@@ -1193,8 +1197,21 @@
     el.finishUndoBtn.addEventListener("click", undoDecision);
     el.toastUndo.addEventListener("click", undoDecision);
     el.restartBtn.addEventListener("click", resetItems);
-    el.nativeDeleteBtn.addEventListener("click", handleNativeDelete);
-    el.nativeQuickDelete.addEventListener("click", handleNativeDelete);
+    el.nativeDeleteBtn.addEventListener("click", () => {
+      if (IS_NATIVE) handleNativeDelete();
+    });
+    el.nativeQuickDelete.addEventListener("click", () => {
+      if (IS_NATIVE) handleNativeDelete();
+    });
+    if (el.deleteConfirmBtn) {
+      el.deleteConfirmBtn.addEventListener("click", confirmNativeDelete);
+    }
+    if (el.deleteConfirmDialog) {
+      el.deleteConfirmDialog.addEventListener("close", () => {
+        pendingDeleteItems = [];
+      });
+    }
+
 
     el.deck.addEventListener("pointerdown", onPointerDown);
     el.deck.addEventListener("pointermove", onPointerMove);
@@ -1549,9 +1566,68 @@
     }
   }
 
-  async function handleNativeDelete() {
-    if (!IS_NATIVE || state.nativeBusy || state.busy) return;
+  let pendingDeleteItems = [];
+
+  function openDeleteConfirm() {
+    if (state.nativeBusy || state.busy) return;
+    if (!IS_NATIVE) {
+      showToast("系统相册删除只在 Android 版可用", { duration: 2600 });
+      return;
+    }
     const toDelete = getDecisions("delete");
+    if (!toDelete.length) {
+      showToast("没有待删除的照片", { duration: 2200 });
+      return;
+    }
+
+    pendingDeleteItems = toDelete.slice();
+    el.confirmCount.textContent = String(toDelete.length);
+
+    const fragment = document.createDocumentFragment();
+    toDelete.forEach((item, index) => {
+      const cell = document.createElement("figure");
+      cell.className = "confirm-cell";
+      cell.setAttribute("role", "listitem");
+
+      const image = document.createElement("img");
+      image.src = item.url;
+      image.alt = `第 ${index + 1} 张待删除：${item.name}`;
+      image.loading = "lazy";
+      image.decoding = "async";
+      cell.appendChild(image);
+
+      const caption = document.createElement("figcaption");
+      caption.textContent = item.name;
+      cell.appendChild(caption);
+
+      fragment.appendChild(cell);
+    });
+
+    el.confirmGrid.replaceChildren(fragment);
+
+    if (el.resultsDialog.open) el.resultsDialog.close();
+    if (!el.deleteConfirmDialog.open) el.deleteConfirmDialog.showModal();
+  }
+
+  async function confirmNativeDelete() {
+    if (!pendingDeleteItems.length) {
+      if (el.deleteConfirmDialog.open) el.deleteConfirmDialog.close();
+      return;
+    }
+    el.confirmDeleteBtn.disabled = true;
+    if (el.deleteConfirmDialog.open) el.deleteConfirmDialog.close();
+    await runNativeDelete();
+    pendingDeleteItems = [];
+    el.confirmDeleteBtn.disabled = false;
+  }
+
+  function handleNativeDelete() {
+    openDeleteConfirm();
+  }
+  async function runNativeDelete() {
+    if (!IS_NATIVE || state.nativeBusy || state.busy) return;
+    const allDeleting = getDecisions("delete");
+    const toDelete = pendingDeleteItems.length ? pendingDeleteItems : allDeleting;
     const ids = toDelete.map((item) => item.nativeId).filter(Boolean);
     if (!ids.length) {
       showToast("没有待删除的照片", { duration: 2200 });
