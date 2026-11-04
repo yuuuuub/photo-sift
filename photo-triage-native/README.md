@@ -20,6 +20,7 @@
 - 底部连拍预览条显示前后照片、连拍分组、组内剩余张数，并可点击跳转
 - 双击照片全屏放大，捏合缩放、拖动查看细节（边角 / 焦点是否清晰）
 - 真正删除前会先弹一次 App 内确认：列出即将删除的缩略图，看过一遍再交给系统确认
+- **相似照片**：先读取相册总数，选范围后自动把连拍/同一场景的照片聚成组，每组保留最清晰的一张，其余可一键标记删除
 - 浏览过程中随时可点右上角「删除已选 N」立即批量删除，不必先看完
 - 完成一批后可继续加载更早的照片
 - 结果页提供「从系统相册删除 N 张」按钮
@@ -44,7 +45,7 @@ photo-triage-debug.apk
 - SHA-256：
 
 ```text
-046EF7F06FEF283C28D72018C01458C916E2E5B82702CC595627FE85E9A121AA
+46EF95A07453A987BE7B724B2C1BFE177CE39CD56A40F049921B24ABD9CC08B3
 ```
 
 安装方式：把 APK 发到手机，允许「安装未知来源应用」，点击安装；或连接 USB 调试后执行：
@@ -116,6 +117,7 @@ photo-triage-native/
 │   ├── app.js              # 包含原生相册/删除流程
 │   ├── features.js         # 挂起对比、连拍预览条
 │   ├── zoom.js             # 双击放大
+│   ├── similar.js          # 相似照片分组（感知哈希）
 │   └── native-bundle.js    # Capacitor 插件 JS 打包产物
 ├── native-entry.js         # 打包入口：@capacitor/core、App、PhotoLibrary、PhotoDeleter
 ├── capacitor.config.json

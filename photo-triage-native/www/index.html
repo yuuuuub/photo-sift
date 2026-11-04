@@ -57,6 +57,9 @@
                 <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
               </span>
             </button>
+            <button class="btn-ghost" id="similarBtn" type="button" hidden>
+              相似照片 <span aria-hidden="true">≡</span>
+            </button>
             <button class="btn-ghost" id="demoBtn" type="button">
               先看示例 <span aria-hidden="true">↗</span>
             </button>
@@ -330,6 +333,43 @@
     </div>
   </dialog>
 
+  <dialog class="similar-screen" id="similarScreen" aria-labelledby="simHeadline">
+    <div class="sim-head">
+      <div class="sim-head__text">
+        <p class="eyebrow"><i></i>SIMILAR / 连拍相似</p>
+        <h2 id="simHeadline">正在读取相册总数…</h2>
+      </div>
+      <button class="icon-btn sim-close" type="button" data-sim-close aria-label="关闭相似照片">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <p class="sim-lede">只挑同一场景 / 连拍里高度相似的几张。每组自动保留最清晰的一张，点其他缩略图可以改选。</p>
+
+    <div class="sim-range" id="simRange" role="group" aria-label="检查范围"></div>
+
+    <div class="sim-progress" id="simProgress" hidden>
+      <div class="sim-progress__track"><span id="simProgressBar"></span></div>
+      <p id="simProgressText"></p>
+    </div>
+
+    <p class="sim-error" id="simError" hidden></p>
+
+    <p class="sim-summary" id="simSummary"></p>
+
+    <div class="sim-groups" id="simGroups"></div>
+
+    <div class="sim-empty" id="simEmpty" hidden>
+      <b>这个范围里没有找到相似照片</b>
+      <p>换个范围再试，或者回去逐张挑。</p>
+    </div>
+
+    <div class="sim-delete-bar" id="simDeleteBar" hidden>
+      <span>将标记删除 <b id="simDeleteCount">0</b> 张</span>
+      <button class="sim-delete-btn" id="simDeleteBtn" type="button">删除这些</button>
+    </div>
+  </dialog>
+
   <dialog class="sheet confirm-sheet" id="deleteConfirmDialog" aria-labelledby="deleteConfirmTitle">
     <div class="sheet__head">
       <div>
@@ -373,5 +413,6 @@
   <script src="app.js" defer></script>
   <script src="features.js" defer></script>
   <script src="zoom.js" defer></script>
+  <script src="similar.js" defer></script>
 </body>
 </html>

@@ -1223,6 +1223,10 @@
     document.addEventListener("keydown", onKeyDown);
 
     if (!IS_NATIVE) setupDropZone();
+
+    if (IS_NATIVE && el.demoBtn) {
+      el.demoBtn.hidden = true;
+    }
   }
 
   function onKeyDown(event) {
@@ -1744,6 +1748,28 @@
 
   /* -------------------------------------------------------------------- init */
 
+  function pickFromSimilar(assets) {
+    if (!IS_NATIVE || !assets || !assets.length) return;
+    const existing = new Set(state.items.map((item) => String(item.nativeId)));
+    const fresh = assets.filter((asset) => asset && asset.id && !existing.has(String(asset.id)));
+    if (!fresh.length) return;
+
+    const items = fresh.map((asset) => ({
+      id: String(asset.id),
+      nativeId: String(asset.id),
+      name: asset.fileName || "照片",
+      url: asset.thumbnail && asset.thumbnail.webPath ? asset.thumbnail.webPath : "",
+      date: nativeDateLabel(asset.creationDate),
+      size: asset.size ? `${Math.max(1, Math.round(asset.size / 1024))} KB` : "",
+      status: "delete",
+      demo: false,
+      timestamp: Date.parse(asset.creationDate) || 0
+    }));
+
+    state.items = state.items.concat(items);
+    renderAll();
+    openDeleteConfirm();
+  }
   function openZoom(item) {
     if (!item || state.stage !== "review") return;
     document.dispatchEvent(new CustomEvent("photosift:open-zoom", { detail: { id: item.id } }));
@@ -1756,6 +1782,7 @@
     applyDecision,
     jumpToPending,
     openZoom,
+    pickFromSimilar,
     renderAll,
     showToast,
     announce
