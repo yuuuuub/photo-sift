@@ -26,7 +26,9 @@
 
 ## 网页版
 
-直接打开 [`photo-triage/index.html`](photo-triage/index.html)，或启动静态服务器：
+在线体验：<https://yuuuuub.github.io/photo-sift/photo-triage/>
+
+也可以直接打开 [`photo-triage/index.html`](photo-triage/index.html)，或启动静态服务器：
 
 ```bash
 cd photo-triage
