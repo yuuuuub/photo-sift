@@ -551,6 +551,9 @@
   let zoomX = 0;
   let zoomY = 0;
   let zoomDrag = null;
+  let zoomPinch = null;
+  const zoomTouches = new Map();
+  const MAX_ZOOM = 6;
 
   function applyZoomTransform(animate) {
     zoomImage.classList.toggle("is-animating", Boolean(animate));
@@ -689,10 +692,30 @@
     });
 
     zoomStage.addEventListener("pointerdown", (event) => {
+      if (zoomStage.getPointerCapture) {
+        try { zoomStage.setPointerCapture(event.pointerId); } catch (_) {}
+      }
+
+      if (event.pointerType === "touch") {
+        zoomTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+        if (zoomTouches.size === 2) {
+          const [a, b] = [...zoomTouches.values()];
+          zoomDrag = null;
+          zoomPinch = {
+            distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+            scale: zoomScale,
+            centerX: (a.x + b.x) / 2,
+            centerY: (a.y + b.y) / 2
+          };
+          return;
+        }
+      }
+
       if (!event.isPrimary) return;
+
       if (zoomScale > 1.01) {
         zoomDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, startX: zoomX, startY: zoomY };
-        try { zoomStage.setPointerCapture(event.pointerId); } catch (_) {}
       } else {
         const now = performance.now();
         if (zoomStage.dataset.lastTap && now - Number(zoomStage.dataset.lastTap) < 280) {
@@ -706,6 +729,23 @@
     });
 
     zoomStage.addEventListener("pointermove", (event) => {
+      if (zoomTouches.has(event.pointerId)) {
+        zoomTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      }
+
+      if (zoomPinch && zoomTouches.size >= 2) {
+        const [a, b] = [...zoomTouches.values()];
+        const distance = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+        const target = Math.min(MAX_ZOOM, Math.max(1, zoomPinch.scale * (distance / zoomPinch.distance)));
+        zoomScale = target;
+        if (target <= 1.01) {
+          zoomX = 0;
+          zoomY = 0;
+        }
+        applyZoomTransform(false);
+        return;
+      }
+
       if (!zoomDrag || event.pointerId !== zoomDrag.id) return;
       zoomX = zoomDrag.startX + (event.clientX - zoomDrag.x);
       zoomY = zoomDrag.startY + (event.clientY - zoomDrag.y);
@@ -713,15 +753,29 @@
     });
 
     zoomStage.addEventListener("pointerup", (event) => {
+      zoomTouches.delete(event.pointerId);
+      if (zoomTouches.size < 2) zoomPinch = null;
       if (zoomDrag && event.pointerId === zoomDrag.id) {
         zoomDrag = null;
         if (zoomScale <= 1.01) resetZoom(true);
       }
     });
 
-    zoomStage.addEventListener("pointercancel", () => {
+    zoomStage.addEventListener("pointercancel", (event) => {
+      zoomTouches.delete(event.pointerId);
+      zoomPinch = null;
       zoomDrag = null;
     });
+
+    zoomStage.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      zoomScale = Math.min(MAX_ZOOM, Math.max(1, zoomScale * (event.deltaY < 0 ? 1.15 : 1 / 1.15)));
+      if (zoomScale <= 1.01) {
+        zoomX = 0;
+        zoomY = 0;
+      }
+      applyZoomTransform(false);
+    }, { passive: false });
   }
 
   document.addEventListener("keydown", (event) => {

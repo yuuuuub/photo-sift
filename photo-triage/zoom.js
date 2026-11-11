@@ -129,14 +129,32 @@
     }
   });
 
+  const touches = new Map();
+
   stage.addEventListener("pointerdown", (event) => {
-    if (!event.isPrimary) return;
     event.preventDefault();
     try {
       stage.setPointerCapture(event.pointerId);
     } catch (_) {
       /* older Safari */
     }
+
+    if (event.pointerType === "touch") {
+      touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (touches.size === 2) {
+        const [a, b] = [...touches.values()];
+        panStart = null;
+        pinchStart = {
+          distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+          scale,
+          centerX: (a.x + b.x) / 2,
+          centerY: (a.y + b.y) / 2
+        };
+        return;
+      }
+    }
+
+    if (!event.isPrimary) return;
 
     if (scale > 1.01) {
       panStart = {
@@ -162,29 +180,32 @@
   });
 
   stage.addEventListener("pointermove", (event) => {
+    if (touches.has(event.pointerId)) {
+      touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    }
+
+    if (pinchStart && touches.size >= 2) {
+      const [a, b] = [...touches.values()];
+      const distance = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+      setScale(pinchStart.scale * (distance / pinchStart.distance), pinchStart.centerX, pinchStart.centerY, false);
+      return;
+    }
+
     if (panStart && event.pointerId === panStart.pointerId) {
       offsetX = panStart.offsetX + (event.clientX - panStart.x);
       offsetY = panStart.offsetY + (event.clientY - panStart.y);
       limitOffset();
       applyTransform(false);
-      return;
-    }
-
-    if (pinchStart && event.pointerId === pinchStart.idB) {
-      pinchStart.pointB = { x: event.clientX, y: event.clientY };
-      const dx = pinchStart.pointB.x - pinchStart.pointA.x;
-      const dy = pinchStart.pointB.y - pinchStart.pointA.y;
-      const distance = Math.hypot(dx, dy) || 1;
-      setScale(pinchStart.scale * (distance / pinchStart.distance), pinchStart.centerX, pinchStart.centerY, false);
     }
   });
 
   stage.addEventListener("pointerup", (event) => {
+    touches.delete(event.pointerId);
+    if (touches.size < 2) pinchStart = null;
     if (panStart && event.pointerId === panStart.pointerId) {
       panStart = null;
       if (scale <= 1.01) resetView(true);
     }
-    if (pinchStart && event.pointerId === pinchStart.idB) pinchStart = null;
   });
 
   stage.addEventListener("pointercancel", () => {
