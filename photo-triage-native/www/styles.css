@@ -4544,3 +4544,70 @@ body[data-native="true"] .intro::after {
     padding: 14px 18px 18px;
   }
 }
+/* ----------------------------------------------------- version / update row */
+.version-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: rgba(241, 233, 216, 0.028);
+}
+
+.version-row__text {
+  min-width: 0;
+}
+
+.version-row__text b {
+  display: block;
+  color: var(--paper);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.version-row__text b span {
+  color: var(--lime);
+  font-family: var(--mono);
+}
+
+.version-row__text p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 8.5px;
+  letter-spacing: 0.02em;
+}
+
+.version-row__text p.is-new {
+  color: var(--lime);
+}
+
+.version-row__text p.is-error {
+  color: var(--faint);
+}
+
+.version-row__btn {
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--paper-soft);
+  background: transparent;
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.version-row__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.version-row:has(.is-new) .version-row__btn {
+  border-color: var(--lime);
+  color: #11120e;
+  background: var(--lime);
+}

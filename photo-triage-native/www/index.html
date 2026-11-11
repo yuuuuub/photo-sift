@@ -245,6 +245,13 @@
         <li><span class="howto__keys howto__keys--lime">→</span><div><b>右滑，保留</b><p>留下这一张，继续下一张。</p></div></li>
       </ol>
 
+      <div class="version-row" id="versionRow" hidden>
+        <div class="version-row__text">
+          <b>当前版本 <span id="versionValue">—</span></b>
+          <p id="versionHint" hidden></p>
+        </div>
+        <button class="version-row__btn" id="versionCheck" type="button">检查更新</button>
+      </div>
       <div class="feature-notes">
         <div><b>挂起对比</b><p>点底部的「挂起」，把当前照片放到预览条左侧。继续翻几张，点那张小卡就能并排对比，再决定留不留。</p></div>
         <div><b>连拍预览条</b><p>底部缩略图显示前后照片；同一组连拍会用分隔线和「×张数」标出来，并显示本组还剩多少张。</p></div>
@@ -484,5 +491,6 @@
   <script src="zoom.js" defer></script>
   <script src="similar.js" defer></script>
   <script src="onboarding.js" defer></script>
+  <script src="version.js" defer></script>
 </body>
 </html>

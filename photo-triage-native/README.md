@@ -14,6 +14,7 @@
 ## 已实现
 
 - 首次打开有三步引导（翻页/放大/相似照片），之后不再弹出
+- 说明页显示当前版本，启动时静默检查 GitHub Releases，有新版本可一键跳到下载页
 - 启动时检查并请求「照片和视频」访问权限
 - 从系统相册读取 **最近 60 张** 照片，生成 1080px 预览
 - 上/下滑翻页，左滑加入待删除，右滑保留
@@ -49,13 +50,13 @@ photo-triage-debug.apk     ← 仅用于开发调试
 
 - 大小：约 9.6 MB
 - 包名：`com.tiaopian.app`
-- 版本：1.1（versionCode 2）
+- 版本：1.2（versionCode 3）
 - 最低系统：Android 11（API 30）
 - 签名：Android Debug（v2 签名，可安装）
 - SHA-256：
 
 ```text
-BF6AFB98A7EAD6FDDE1D44A916A518A960EA90312CF138031A542F29E88BCC08
+41B6FFC550328DA47A89D5EB25ECD0929633CAA0614067A045741968DCB65C74
 ```
 
 安装方式：把 APK 发到手机，允许「安装未知来源应用」，点击安装；或连接 USB 调试后执行：
@@ -129,6 +130,7 @@ photo-triage-native/
 │   ├── zoom.js             # 双击放大
 │   ├── similar.js          # 相似照片分组（感知哈希）
 │   ├── onboarding.js       # 首次使用引导
+│   ├── version.js          # 版本信息 / 检查更新
 │   └── native-bundle.js    # Capacitor 插件 JS 打包产物
 ├── native-entry.js         # 打包入口：@capacitor/core、App、PhotoLibrary、PhotoDeleter
 ├── capacitor.config.json

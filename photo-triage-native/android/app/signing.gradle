@@ -34,8 +34,8 @@ def hasReleaseKeystore = storeFileResolved != null &&
 android {
     defaultConfig {
         // 版本号：正式版从这里递增，覆盖安装依赖 versionCode 单调递增
-        versionCode 2
-        versionName "1.1"
+        versionCode 3
+        versionName "1.2"
     }
 
     signingConfigs {
