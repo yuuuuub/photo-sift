@@ -7,3 +7,5 @@ android/local.properties
 *.keystore
 .DS_Store
 Thumbs.db
+keystore.properties
+*.jks

@@ -38,21 +38,24 @@
 
 ## 直接安装 APK
 
-已经构建并验证过签名的调试包：
+发布版（release 签名，可长期覆盖升级）与调试版：
 
 ```text
-photo-triage-debug.apk
+photo-triage-release.apk   ← 日常使用装这个
+photo-triage-debug.apk     ← 仅用于开发调试
 ```
+
+签名、备份与构建说明见 [SIGNING.md](SIGNING.md)。两个包签名不同，不能互相覆盖安装。
 
 - 大小：约 9.6 MB
 - 包名：`com.tiaopian.app`
-- 版本：1.0（versionCode 1）
+- 版本：1.1（versionCode 2）
 - 最低系统：Android 11（API 30）
 - 签名：Android Debug（v2 签名，可安装）
 - SHA-256：
 
 ```text
-16ECA949184F57B9C8BC268845B3AF8E5B13141894DC579D6219DB01CCD0BF3D
+BF6AFB98A7EAD6FDDE1D44A916A518A960EA90312CF138031A542F29E88BCC08
 ```
 
 安装方式：把 APK 发到手机，允许「安装未知来源应用」，点击安装；或连接 USB 调试后执行：
