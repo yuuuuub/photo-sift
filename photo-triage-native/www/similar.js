@@ -33,7 +33,8 @@
     scanningStage: "",
     progress: 0,
     progressLabel: "",
-    error: ""
+    error: "",
+    scanCanceled: false
   };
 
   let scanToken = 0;
@@ -274,6 +275,7 @@
     if (builtTotal === range && state.groups.length) return;
 
     const token = ++scanToken;
+    state.scanCanceled = false;
     state.scanning = true;
     state.error = "";
     state.progress = 0;
@@ -362,6 +364,7 @@
   const screen = document.getElementById("similarScreen");
   const headline = document.getElementById("simHeadline");
   const rangeWrap = document.getElementById("simRange");
+  const rangeHint = document.getElementById("simRangeHint");
   const progressWrap = document.getElementById("simProgress");
   const progressBar = document.getElementById("simProgressBar");
   const progressLabel = document.getElementById("simProgressText");
@@ -407,6 +410,17 @@
 
     if (!state.rangeConfirmed) rangeWrap.classList.add("is-blocking");
     else rangeWrap.classList.remove("is-blocking");
+
+    if (rangeHint) {
+      const saved = readLastRange();
+      if (!state.rangeConfirmed && saved !== null) {
+        rangeHint.textContent = saved < 0 || saved >= state.total
+          ? `上次检查的是「全部 ${state.total} 张」，点一下即可重新扫描。`
+          : `上次检查的是「最近 ${saved} 张」，点一下即可重新扫描。`;
+      } else {
+        rangeHint.textContent = "只比较拍摄时间相差 90 秒以内的照片，所以只挑连拍和同一场景。";
+      }
+    }
   }
 
   function renderGroups() {
@@ -573,13 +587,41 @@
       } catch (error) {
         state.error = error && error.message ? error.message : "读取相册失败";
       }
-      if (state.total > 0) state.range = Math.min(300, state.total);
+      if (state.total > 0) applyDefaultRange();
       render();
     } else {
       render();
     }
   }
 
+  const LAST_RANGE_KEY = "photosift:similarRange";
+
+  function readLastRange() {
+    try {
+      const raw = window.localStorage.getItem(LAST_RANGE_KEY);
+      const value = Number(raw);
+      return Number.isFinite(value) && value !== 0 ? value : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function rememberRange(option, resolved) {
+    try {
+      window.localStorage.setItem(LAST_RANGE_KEY, String(option < 0 ? -1 : resolved));
+    } catch (_) {
+      /* 隐私模式或存储被禁用时忽略 */
+    }
+  }
+
+  function applyDefaultRange() {
+    const saved = readLastRange();
+    if (saved === null) {
+      state.range = Math.min(300, state.total);
+      return;
+    }
+    state.range = saved < 0 ? state.total : Math.min(saved, state.total);
+  }
   function closeScreen() {
     if (screen.open) screen.close();
     scanToken += 1;
@@ -902,6 +944,7 @@
       state.decided = new Set();
       state.cleared = new Set();
       builtTotal = -1;
+      rememberRange(value, state.range);
       render();
       ensureIndex();
       return;
@@ -909,6 +952,15 @@
     if (event.target.closest("#simRescan")) {
       builtTotal = -1;
       ensureIndex();
+      return;
+    }
+    if (event.target.closest("#simCancel")) {
+      scanToken += 1;
+      state.scanning = false;
+      state.scanCanceled = true;
+      state.progress = 0;
+      state.progressLabel = "";
+      render();
       return;
     }
     if (event.target.closest("#simDeleteBtn")) {

@@ -4369,3 +4369,35 @@ body[data-native="true"] .intro::after {
   color: var(--red);
   background: rgba(8, 9, 7, 0.82);
 }
+/* ------------------------------------------------ results actions + sim hint */
+.result__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.sim-range-hint {
+  margin: 8px 18px 0;
+  color: var(--muted);
+  font-size: 8.5px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+}
+
+.sim-range.is-blocking .sim-range__btn {
+  border-color: rgba(241, 233, 216, 0.3);
+}
+
+.sim-progress__cancel {
+  margin-top: 8px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--muted);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}

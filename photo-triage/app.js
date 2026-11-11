@@ -59,6 +59,7 @@
     tabDeleteCount: document.getElementById("tabDeleteCount"),
     resultNote: document.getElementById("resultNote"),
     exportDeleteBtn: document.getElementById("exportDeleteBtn"),
+    exportKeepBtn: document.getElementById("exportKeepBtn"),
     finishSub: document.getElementById("finishSub"),
     finalKeep: document.getElementById("finalKeep"),
     finalDelete: document.getElementById("finalDelete"),
@@ -966,6 +967,7 @@
         ? "网页不能直接删除系统相册中的照片，请按这份清单手动清理。"
         : "这些照片仍保存在本页里，刷新后清空。";
     el.exportDeleteBtn.disabled = deleted.length === 0;
+    if (el.exportKeepBtn) el.exportKeepBtn.hidden = kept.length === 0;
   }
 
   function exportDeleteList() {
@@ -1008,6 +1010,44 @@
     }
   }
 
+  function exportKeepList() {
+    const kept = getDecisions("keep");
+    if (!kept.length) {
+      showToast("保留清单是空的", { duration: 2200 });
+      return;
+    }
+
+    const now = new Date();
+    const dateLabel = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const lines = [
+      "挑片 · 保留清单",
+      `导出时间：${now.toLocaleString("zh-CN", { hour12: false })}`,
+      `共 ${kept.length} 张`,
+      "",
+      ...kept.map((item, index) => `${pad(index + 1)}. ${item.name}${item.date ? `    (${item.date})` : ""}`),
+      "",
+      "这些照片已保留，无需删除。"
+    ];
+
+    const blob = new Blob([`\ufeff${lines.join("\r\n")}`], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `挑片-保留清单-${dateLabel}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+    if (el.resultsDialog.open && el.exportKeepBtn) {
+      el.exportKeepBtn.textContent = "已导出 ✓";
+      window.setTimeout(() => {
+        el.exportKeepBtn.textContent = "导出保留清单";
+      }, 1800);
+    } else {
+      showToast("保留清单已导出", { duration: 2600 });
+    }
+  }
   /* ----------------------------------------------------------------- dialogs */
 
   function closeDialog(dialog) {
@@ -1058,6 +1098,7 @@
     });
 
     el.exportDeleteBtn.addEventListener("click", exportDeleteList);
+    if (el.exportKeepBtn) el.exportKeepBtn.addEventListener("click", exportKeepList);
   }
 
   /* ------------------------------------------------------------------- input */
