@@ -51,6 +51,23 @@
 
   const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
 
+  const SCAN_CONCURRENCY = 4;
+
+  async function pool(tasks, limit, onProgress) {
+    let cursor = 0;
+    let done = 0;
+    const workers = new Array(Math.min(limit, tasks.length)).fill(0).map(async () => {
+      while (cursor < tasks.length) {
+        const index = cursor;
+        cursor += 1;
+        await tasks[index]();
+        done += 1;
+        if (onProgress) onProgress(done);
+      }
+    });
+    await Promise.all(workers);
+  }
+
   function canvasGray(image, size) {
     const canvas = document.createElement("canvas");
     canvas.width = size;
@@ -137,6 +154,9 @@
 
   function pairScore(a, b) {
     if (!a.fingerprint || !b.fingerprint) return 0;
+    // 时间差超过 90 秒的照片不可能属于同一组连拍，直接跳过，避免无谓计算。
+    const gap = Math.abs((a.time || 0) - (b.time || 0));
+    if (gap > 90 * 1000) return 0;
     for (const size of SCREEN_SIZES) {
       const diff = popcount(Number(a.fingerprint[size].dHash ^ b.fingerprint[size].dHash));
       if (diff > SIMILAR_MAX_DISTANCE[size]) return 0;
@@ -181,6 +201,8 @@
       .map((item, index) => ({ item, index }))
       .sort((a, b) => a.item.time - b.item.time);
 
+    // 已按拍摄时间排序，只需和后面 90 秒内的照片比较，跨度过大的自然跳过。
+    // 这让 1000 张相册的比较次数从「最多 1000×1000」降到接近线性。
     for (let i = 0; i < ordered.length; i += 1) {
       for (let j = i + 1; j < ordered.length; j += 1) {
         const gap = ordered[j].item.time - ordered[i].item.time;
@@ -296,16 +318,20 @@
       }
 
       const total = collected.length;
-      for (let i = 0; i < total; i += 1) {
-        if (token !== scanToken) return;
-        await prepare(collected[i]);
-        if (i % 4 === 0) {
-          state.progress = 12 + ((i + 1) / total) * 80;
-          state.progressLabel = `正在比较相似度… ${i + 1} / ${total}`;
+      let lastPaint = 0;
+      const tasks = collected.map((item) => () => prepare(item));
+
+      await pool(tasks, SCAN_CONCURRENCY, (done) => {
+        const now = performance.now();
+        if (now - lastPaint > 120 || done === total) {
+          lastPaint = now;
+          state.progress = 12 + (done / total) * 80;
+          state.progressLabel = `正在比较相似度… ${done} / ${total}`;
           render();
-          await nextFrame();
         }
-      }
+      });
+      if (token !== scanToken) return;
+      await nextFrame();
 
       const usable = collected.filter((item) => item.fingerprint);
       state.progressLabel = "正在分组…";
