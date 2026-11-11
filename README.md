@@ -43,7 +43,9 @@ python -m http.server 8000
 
 ## Android 原生版
 
-安装包：[`photo-triage-native/photo-triage-debug.apk`](photo-triage-native/photo-triage-debug.apk)（约 9.6 MB，Android 11+）
+安装包：[`photo-triage-native/photo-triage-release.apk`](photo-triage-native/photo-triage-release.apk)（约 7.9 MB，Android 11+，release 签名，可覆盖升级）
+
+调试包：[`photo-triage-native/photo-triage-debug.apk`](photo-triage-native/photo-triage-debug.apk)（仅开发用，签名不同，不能与 release 版互相覆盖）
 
 首次打开会自动请求相册权限。左滑标记后，可以：
 
@@ -52,9 +54,11 @@ python -m http.server 8000
 
 Android 会弹出一次系统确认；确认后照片被永久删除，无法撤销。
 
-> 当前提供的是 debug 签名 APK，适合自用 / 侧载。上架 Google Play 需要使用 release keystore 重新签名，并申报照片和视频权限用途。
+> release 包用项目自带的 keystore 签名，适合自用 / 侧载。上架 Google Play 需申报照片和视频权限用途，见 [签名说明](photo-triage-native/SIGNING.md)。
 
 构建说明、权限声明、原生实现见 [Android 版说明](photo-triage-native/README.md)。
+
+照片处理与数据流向见 [隐私说明](PRIVACY.md)。
 
 ## 目录
 
