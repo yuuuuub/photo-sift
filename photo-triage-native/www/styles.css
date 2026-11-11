@@ -4295,3 +4295,77 @@ body[data-native="true"] .intro::after {
   opacity: 0.5;
   cursor: default;
 }
+/* --------------------------------------------------- similar: whole-group del */
+.sim-group__head {
+  align-items: center;
+}
+
+.sim-group__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sim-group__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.sim-group__clear,
+.sim-group__expand {
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--paper-soft);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.sim-group__clear[aria-pressed="true"] {
+  border-color: rgba(255, 96, 65, 0.7);
+  color: var(--red);
+  background: var(--red-soft);
+}
+
+.sim-group.is-cleared {
+  border-color: rgba(255, 96, 65, 0.36);
+}
+
+.sim-group.is-cleared .sim-group__head b {
+  color: var(--red);
+}
+
+.sim-group.is-collapsed .sim-group__head {
+  border-bottom: 0;
+}
+
+.sim-item.is-doomed {
+  opacity: 0.5;
+}
+
+.sim-item.is-doomed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    45deg,
+    transparent 46%,
+    rgba(255, 96, 65, 0.5) 47%,
+    rgba(255, 96, 65, 0.5) 53%,
+    transparent 54%
+  );
+  pointer-events: none;
+}
+
+.sim-item.is-doomed .sim-item__badge {
+  color: var(--red);
+  background: rgba(8, 9, 7, 0.82);
+}

@@ -26,6 +26,7 @@
     items: [],
     groups: [],
     decided: new Set(),
+    cleared: new Set(),
     decidedId: "",
     rangeConfirmed: false,
     scanning: false,
@@ -317,6 +318,7 @@
       state.decided = new Set(
         state.groups.map((group) => group.lead.id)
       );
+      state.cleared = new Set();
       builtTotal = range;
       state.progress = 100;
       state.scanningStage = "done";
@@ -386,18 +388,50 @@
     const fragment = document.createDocumentFragment();
 
     state.groups.forEach((group) => {
+      const cleared = state.cleared.has(group.index);
       const card = document.createElement("article");
       card.className = "sim-group";
       card.dataset.group = String(group.index);
+      if (cleared) card.classList.add("is-cleared");
+      if (group.collapsed) card.classList.add("is-collapsed");
 
       const head = document.createElement("div");
       head.className = "sim-group__head";
+      const info = document.createElement("div");
+      info.className = "sim-group__info";
       const title = document.createElement("b");
       title.textContent = `第 ${group.index + 1} 组 · ${group.items.length} 张`;
       const meta = document.createElement("span");
-      meta.textContent = `${group.date}${group.builtin ? " · 连拍" : ""}`;
-      head.append(title, meta);
+      meta.textContent = cleared
+        ? `${group.date} · 本组全部删除`
+        : `${group.date}${group.builtin ? " · 连拍" : ""}`;
+      info.append(title, meta);
+
+      const actions = document.createElement("div");
+      actions.className = "sim-group__actions";
+      const clearBtn = document.createElement("button");
+      clearBtn.type = "button";
+      clearBtn.className = "sim-group__clear";
+      clearBtn.dataset.simClear = String(group.index);
+      clearBtn.setAttribute("aria-pressed", String(cleared));
+      clearBtn.textContent = cleared ? "恢复保留" : "整组删除";
+      actions.appendChild(clearBtn);
+      if (group.collapsed) {
+        const expandBtn = document.createElement("button");
+        expandBtn.type = "button";
+        expandBtn.className = "sim-group__expand";
+        expandBtn.dataset.simExpand = String(group.index);
+        expandBtn.textContent = "展开";
+        actions.appendChild(expandBtn);
+      }
+
+      head.append(info, actions);
       card.appendChild(head);
+
+      if (group.collapsed) {
+        fragment.appendChild(card);
+        return;
+      }
 
       const perPage = group.items.length >= 4 ? 4 : group.items.length;
       for (let page = 0; page < group.items.length; page += perPage) {
@@ -407,11 +441,13 @@
 
         slice.forEach((item) => {
           const keeper = state.decided.has(item.id);
+          const doomed = cleared && !keeper;
 
           const cell = document.createElement("div");
           cell.className = "sim-item";
           cell.dataset.id = item.id;
           if (keeper) cell.classList.add("is-keeper");
+          if (doomed) cell.classList.add("is-doomed");
 
           const pick = document.createElement("button");
           pick.type = "button";
@@ -428,7 +464,9 @@
 
           const badge = document.createElement("span");
           badge.className = "sim-item__badge";
-          badge.textContent = keeper ? "保留" : item.rank === 0 ? "建议保留" : "候选";
+          badge.textContent = keeper
+            ? "保留"
+            : cleared ? "将删除" : item.rank === 0 ? "建议保留" : "候选";
           pick.appendChild(badge);
 
           cell.appendChild(pick);
@@ -478,8 +516,9 @@
     const groupCount = state.groups.length;
     const grouped = state.groups.reduce((sum, group) => sum + group.items.length, 0);
     const burstGroups = state.groups.filter((group) => group.items.length >= 4).length;
+    const clearedGroups = state.cleared.size;
     summary.textContent = groupCount
-      ? `找到 ${groupCount} 组相似照片 · 共 ${grouped} 张 · 其中 ${burstGroups} 组像连拍`
+      ? `找到 ${groupCount} 组相似照片 · 共 ${grouped} 张 · 其中 ${burstGroups} 组像连拍${clearedGroups ? ` · ${clearedGroups} 组整组删除` : ""}`
       : "";
 
     renderGroups();
@@ -528,12 +567,46 @@
       return false;
     }
 
+    // 手动挑了别的照片，就取消「整组删除」。
+    if (state.cleared.has(group.index)) {
+      state.cleared.delete(group.index);
+      group.collapsed = false;
+    }
+
     // 每组同一时间只保留一张：先清掉本组所有保留项，再登记新的。
     group.items.forEach((item) => state.decided.delete(item.id));
     state.decided.add(id);
     render();
     announceSimilar(`第 ${group.index + 1} 组已改选保留：${id === group.lead.id ? "原建议" : "新选择"}`);
     return true;
+  }
+
+  function toggleClearGroup(groupIndex) {
+    const group = state.groups[groupIndex];
+    if (!group || state.scanning) return;
+
+    if (state.cleared.has(groupIndex)) {
+      state.cleared.delete(groupIndex);
+      group.collapsed = false;
+      state.decided.add(group.lead.id);
+      render();
+      announceSimilar(`第 ${groupIndex + 1} 组已恢复保留：${group.lead.name}`);
+      return;
+    }
+
+    group.items.forEach((item) => state.decided.delete(item.id));
+    state.cleared.add(groupIndex);
+    // 组数多的时候，已确认整组删除的卡片折叠起来，避免列表太长。
+    group.collapsed = state.groups.length > 12;
+    render();
+    announceSimilar(`第 ${groupIndex + 1} 组整组删除：${group.items.length} 张`);
+  }
+
+  function expandGroup(groupIndex) {
+    const group = state.groups[groupIndex];
+    if (!group) return;
+    group.collapsed = false;
+    render();
   }
 
   let zoomItem = null;
@@ -801,6 +874,7 @@
       state.rangeConfirmed = true;
       state.groups = [];
       state.decided = new Set();
+      state.cleared = new Set();
       builtTotal = -1;
       render();
       ensureIndex();
@@ -813,6 +887,16 @@
     }
     if (event.target.closest("#simDeleteBtn")) {
       runConfirmDelete();
+      return;
+    }
+    const clearBtn = event.target.closest("[data-sim-clear]");
+    if (clearBtn) {
+      toggleClearGroup(Number(clearBtn.dataset.simClear));
+      return;
+    }
+    const expandBtn = event.target.closest("[data-sim-expand]");
+    if (expandBtn) {
+      expandGroup(Number(expandBtn.dataset.simExpand));
       return;
     }
     const zoomBtn = event.target.closest("[data-sim-zoom]");
