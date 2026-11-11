@@ -204,6 +204,9 @@
     groups.sort((a, b) => b.items.length - a.items.length || b.time - a.time);
     groups.forEach((group, index) => {
       group.index = index;
+      group.items.forEach((item) => {
+        item.groupIndex = index;
+      });
     });
     return groups;
   }
@@ -279,6 +282,7 @@
             pixels: (asset.width || 0) * (asset.height || 0),
             thumbUrl: asset.thumbnail && asset.thumbnail.webPath ? asset.thumbnail.webPath : "",
             asset,
+            groupIndex: -1,
             fingerprint: undefined,
             rank: 0
           });
@@ -402,23 +406,40 @@
         row.className = "sim-grid";
 
         slice.forEach((item) => {
-          const cell = document.createElement("button");
-          cell.type = "button";
+          const keeper = state.decided.has(item.id);
+
+          const cell = document.createElement("div");
           cell.className = "sim-item";
           cell.dataset.id = item.id;
-          cell.setAttribute("aria-pressed", String(state.decided.has(item.id)));
-          if (state.decided.has(item.id)) cell.classList.add("is-keeper");
+          if (keeper) cell.classList.add("is-keeper");
+
+          const pick = document.createElement("button");
+          pick.type = "button";
+          pick.className = "sim-item__pick";
+          pick.dataset.simPick = item.id;
+          pick.setAttribute("aria-pressed", String(keeper));
+          pick.setAttribute("aria-label", `${item.name}${keeper ? "，已选为保留" : "，点按设为保留"}`);
 
           const image = document.createElement("img");
           image.src = item.thumbUrl || item.asset.webPath;
           image.alt = item.name;
           image.loading = "lazy";
-          cell.appendChild(image);
+          pick.appendChild(image);
 
           const badge = document.createElement("span");
           badge.className = "sim-item__badge";
-          badge.textContent = item.rank === 0 ? "建议保留" : "候选";
-          cell.appendChild(badge);
+          badge.textContent = keeper ? "保留" : item.rank === 0 ? "建议保留" : "候选";
+          pick.appendChild(badge);
+
+          cell.appendChild(pick);
+
+          const zoom = document.createElement("button");
+          zoom.type = "button";
+          zoom.className = "sim-item__zoom";
+          zoom.dataset.simZoom = item.id;
+          zoom.setAttribute("aria-label", `放大查看 ${item.name}`);
+          zoom.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5a6 6 0 104.24 10.24L20 20M11 8v6M8 11h6"/></svg>';
+          cell.appendChild(zoom);
 
           const label = document.createElement("span");
           label.className = "sim-item__name";
@@ -501,20 +522,98 @@
 
   function toggleKeeper(id) {
     const group = state.groups.find((entry) => entry.items.some((item) => item.id === id));
-    if (!group) return;
+    if (!group) return false;
     if (state.decided.has(id)) {
       // 每组至少留一张，点已经选中的那张不做取消，避免整组都被删掉。
-      return;
+      return false;
     }
-    state.decided.delete(group.lead.id);
+
+    // 每组同一时间只保留一张：先清掉本组所有保留项，再登记新的。
+    group.items.forEach((item) => state.decided.delete(item.id));
     state.decided.add(id);
     render();
+    announceSimilar(`第 ${group.index + 1} 组已改选保留：${id === group.lead.id ? "原建议" : "新选择"}`);
+    return true;
+  }
+
+  let zoomItem = null;
+  let zoomGroup = [];
+  let zoomIndex = 0;
+  const zoomDialog = document.getElementById("similarZoom");
+  const zoomImage = document.getElementById("simZoomImage");
+  const zoomCaption = document.getElementById("simZoomCaption");
+  const zoomPosition = document.getElementById("simZoomPosition");
+  const zoomKeepBtn = document.getElementById("simZoomKeep");
+  const zoomPrevBtn = document.getElementById("simZoomPrev");
+  const zoomNextBtn = document.getElementById("simZoomNext");
+  const zoomStage = document.getElementById("simZoomStage");
+  let zoomScale = 1;
+  let zoomX = 0;
+  let zoomY = 0;
+  let zoomDrag = null;
+
+  function applyZoomTransform(animate) {
+    zoomImage.classList.toggle("is-animating", Boolean(animate));
+    zoomImage.style.transform = `translate3d(${zoomX.toFixed(1)}px, ${zoomY.toFixed(1)}px, 0) scale(${zoomScale.toFixed(3)})`;
+    if (zoomStage) zoomStage.classList.toggle("is-zoomed", zoomScale > 1.01);
+  }
+
+  function resetZoom(animate) {
+    zoomScale = 1;
+    zoomX = 0;
+    zoomY = 0;
+    applyZoomTransform(animate);
+  }
+
+  function showZoomIndex(index) {
+    if (!zoomGroup.length) return;
+    zoomIndex = (index + zoomGroup.length) % zoomGroup.length;
+    zoomItem = zoomGroup[zoomIndex];
+    zoomImage.src = zoomItem.thumbUrl || zoomItem.asset.webPath;
+    zoomImage.alt = zoomItem.name;
+    zoomCaption.textContent = zoomItem.name;
+    const keeper = state.decided.has(zoomItem.id);
+    zoomPosition.textContent = `${zoomIndex + 1} / ${zoomGroup.length} · ${keeper ? "已选保留" : zoomItem.rank === 0 ? "建议保留" : "候选"}`;
+    zoomKeepBtn.textContent = keeper ? "已选为保留" : "设为保留";
+    zoomKeepBtn.disabled = keeper;
+    zoomPrevBtn.disabled = zoomGroup.length < 2;
+    zoomNextBtn.disabled = zoomGroup.length < 2;
+    resetZoom(false);
+  }
+
+  function openSimilarZoom(item, neighbours) {
+    if (!zoomDialog || !zoomImage) return;
+    zoomGroup = (neighbours && neighbours.length ? neighbours : [item]).slice();
+    const index = zoomGroup.findIndex((entry) => entry.id === item.id);
+    if (!zoomDialog.open) zoomDialog.showModal();
+    showZoomIndex(index < 0 ? 0 : index);
+  }
+
+  function stepZoom(direction) {
+    showZoomIndex(zoomIndex + direction);
+  }
+
+  function chooseZoomKeeper() {
+    if (!zoomItem) return;
+    toggleKeeper(zoomItem.id);
+    showZoomIndex(zoomIndex);
+  }
+  function announceSimilar(text) {
+    const live = document.getElementById("similarLive");
+    if (live) live.textContent = text;
+  }
+
+  function openZoomItem(id) {
+    const item = state.items.find((entry) => entry.id === id);
+    if (!item) return;
+    const group = state.groups[item.groupIndex];
+    openSimilarZoom(item, group ? group.items : [item]);
   }
 
   function pickGroupItem(event) {
-    const cell = event.target.closest(".sim-item");
-    if (!cell) return;
-    toggleKeeper(cell.dataset.id);
+    const pick = event.target.closest("[data-sim-pick]");
+    if (!pick) return;
+    toggleKeeper(pick.dataset.simPick);
   }
 
   async function runConfirmDelete() {
@@ -546,6 +645,95 @@
   }
   /* ------------------------------------------------------------------ wire */
 
+  if (zoomDialog) {
+    zoomDialog.addEventListener("click", (event) => {
+      if (event.target.closest("[data-sim-zoom-close]")) {
+        zoomDialog.close();
+        return;
+      }
+      if (event.target.closest("#simZoomPrev")) {
+        stepZoom(-1);
+        return;
+      }
+      if (event.target.closest("#simZoomNext")) {
+        stepZoom(1);
+        return;
+      }
+      if (event.target.closest("#simZoomKeep")) {
+        chooseZoomKeeper();
+        return;
+      }
+      if (event.target === zoomDialog) {
+        zoomDialog.close();
+        return;
+      }
+      const resetBtn = event.target.closest("#simZoomReset");
+      if (resetBtn) resetZoom(true);
+    });
+
+    zoomDialog.addEventListener("close", () => {
+      zoomItem = null;
+      zoomGroup = [];
+      resetZoom(false);
+    });
+  }
+
+  if (zoomImage && zoomStage) {
+    zoomImage.addEventListener("dblclick", () => {
+      if (zoomScale > 1.01) {
+        resetZoom(true);
+      } else {
+        zoomScale = 2.5;
+        applyZoomTransform(true);
+      }
+    });
+
+    zoomStage.addEventListener("pointerdown", (event) => {
+      if (!event.isPrimary) return;
+      if (zoomScale > 1.01) {
+        zoomDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, startX: zoomX, startY: zoomY };
+        try { zoomStage.setPointerCapture(event.pointerId); } catch (_) {}
+      } else {
+        const now = performance.now();
+        if (zoomStage.dataset.lastTap && now - Number(zoomStage.dataset.lastTap) < 280) {
+          zoomScale = 2.5;
+          applyZoomTransform(true);
+          zoomStage.dataset.lastTap = "";
+        } else {
+          zoomStage.dataset.lastTap = String(now);
+        }
+      }
+    });
+
+    zoomStage.addEventListener("pointermove", (event) => {
+      if (!zoomDrag || event.pointerId !== zoomDrag.id) return;
+      zoomX = zoomDrag.startX + (event.clientX - zoomDrag.x);
+      zoomY = zoomDrag.startY + (event.clientY - zoomDrag.y);
+      applyZoomTransform(false);
+    });
+
+    zoomStage.addEventListener("pointerup", (event) => {
+      if (zoomDrag && event.pointerId === zoomDrag.id) {
+        zoomDrag = null;
+        if (zoomScale <= 1.01) resetZoom(true);
+      }
+    });
+
+    zoomStage.addEventListener("pointercancel", () => {
+      zoomDrag = null;
+    });
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (!zoomDialog || !zoomDialog.open) return;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      stepZoom(-1);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      stepZoom(1);
+    }
+  });
   similarBtn.addEventListener("click", openScreen);
   screen.addEventListener("click", (event) => {
     if (event.target.closest("[data-sim-close]")) {
@@ -571,6 +759,11 @@
     }
     if (event.target.closest("#simDeleteBtn")) {
       runConfirmDelete();
+      return;
+    }
+    const zoomBtn = event.target.closest("[data-sim-zoom]");
+    if (zoomBtn) {
+      openZoomItem(zoomBtn.dataset.simZoom);
       return;
     }
     if (event.target.closest(".sim-item")) {

@@ -333,6 +333,30 @@
     </div>
   </dialog>
 
+  <dialog class="similar-zoom" id="similarZoom" aria-labelledby="simZoomCaption">
+    <div class="similar-zoom__bar">
+      <button class="similar-zoom__nav" id="simZoomPrev" type="button" aria-label="组内上一张">←</button>
+      <div class="similar-zoom__text">
+        <b id="simZoomCaption"></b>
+        <span id="simZoomPosition"></span>
+      </div>
+      <button class="similar-zoom__nav" id="simZoomNext" type="button" aria-label="组内下一张">→</button>
+      <button class="icon-btn similar-zoom__close" type="button" data-sim-zoom-close aria-label="关闭放大">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="similar-zoom__stage" id="simZoomStage">
+      <img id="simZoomImage" alt="">
+      <button class="similar-zoom__reset" id="simZoomReset" type="button" aria-label="还原缩放">1×</button>
+    </div>
+
+    <div class="similar-zoom__actions">
+      <p class="similar-zoom__hint">双击放大 · 拖动查看细节 · ← → 切换组内照片</p>
+      <button class="similar-zoom__keep" id="simZoomKeep" type="button">设为保留</button>
+    </div>
+  </dialog>
+
   <dialog class="similar-screen" id="similarScreen" aria-labelledby="simHeadline">
     <div class="sim-head">
       <div class="sim-head__text">
@@ -355,6 +379,7 @@
 
     <p class="sim-error" id="simError" hidden></p>
 
+    <p class="similar-live" id="similarLive" role="status" aria-live="polite"></p>
     <p class="sim-summary" id="simSummary"></p>
 
     <div class="sim-groups" id="simGroups"></div>
