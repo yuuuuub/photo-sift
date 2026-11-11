@@ -13,6 +13,7 @@
 
 ## 已实现
 
+- 首次打开有三步引导（翻页/放大/相似照片），之后不再弹出
 - 启动时检查并请求「照片和视频」访问权限
 - 从系统相册读取 **最近 60 张** 照片，生成 1080px 预览
 - 上/下滑翻页，左滑加入待删除，右滑保留
@@ -51,7 +52,7 @@ photo-triage-debug.apk
 - SHA-256：
 
 ```text
-C3466090C5835B41E604BD41D08E14962D929B61F67EE4753A21D767E770AB05
+16ECA949184F57B9C8BC268845B3AF8E5B13141894DC579D6219DB01CCD0BF3D
 ```
 
 安装方式：把 APK 发到手机，允许「安装未知来源应用」，点击安装；或连接 USB 调试后执行：
@@ -124,6 +125,7 @@ photo-triage-native/
 │   ├── features.js         # 挂起对比、连拍预览条
 │   ├── zoom.js             # 双击放大
 │   ├── similar.js          # 相似照片分组（感知哈希）
+│   ├── onboarding.js       # 首次使用引导
 │   └── native-bundle.js    # Capacitor 插件 JS 打包产物
 ├── native-entry.js         # 打包入口：@capacitor/core、App、PhotoLibrary、PhotoDeleter
 ├── capacitor.config.json

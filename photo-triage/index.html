@@ -325,6 +325,44 @@
     </div>
   </dialog>
 
+  <dialog class="onboarding" id="onboarding" aria-labelledby="onboardingTitle">
+    <div class="onboarding__head">
+      <p class="eyebrow"><i></i>FIRST LOOK / 上手</p>
+      <h2 id="onboardingTitle">三步把相册过一遍</h2>
+    </div>
+
+    <ul class="onboarding__steps">
+      <li>
+        <b>01</b>
+        <div>
+          <strong>上下翻页，左右决定</strong>
+          <span>上滑下一张、下滑上一张；左滑标记删除，右滑保留，点「撤销」可以反悔。</span>
+        </div>
+      </li>
+      <li>
+        <b>02</b>
+        <div>
+          <strong>双击放大看细节</strong>
+          <span>双击照片全屏放大，双指捏合缩放，用来判断连拍里哪张最清晰。</span>
+        </div>
+      </li>
+      <li>
+        <b>03</b>
+        <div>
+          <strong>连拍交给「相似照片」</strong>
+          <span>自动把同一场景的照片分好组，每组先帮你留一张，其余一键标记删除。</span>
+        </div>
+      </li>
+    </ul>
+
+    <p class="onboarding__note">照片只在设备本地处理，不会上传；删除前会有两次确认。</p>
+
+    <div class="onboarding__actions">
+      <button class="onboarding__start" id="onboardingStart" type="button">开始挑照片</button>
+      <button class="onboarding__similar" id="onboardingSimilar" type="button" hidden>先看相似照片</button>
+    </div>
+  </dialog>
+
   <dialog class="zoom-viewer" id="zoomViewer" aria-labelledby="zoomCounter">
     <div class="zoom-bar">
       <p class="zoom-bar__label" id="zoomCounter"></p>
@@ -341,5 +379,6 @@
   <script src="app.js" defer></script>
   <script src="features.js" defer></script>
   <script src="zoom.js" defer></script>
+  <script src="onboarding.js" defer></script>
 </body>
 </html>
